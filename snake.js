@@ -1,4 +1,3 @@
-// ===== snake.js =====
 export class Snake {
     constructor(grid, canvasWidth, canvasHeight) {
         this.grid = grid;
@@ -20,12 +19,8 @@ export class Snake {
     move() {
         const head = { x: this.body[0].x + this.dx, y: this.body[0].y + this.dy };
         this.body.unshift(head);
-
-        if (this.growSegments > 0) {
-            this.growSegments--;
-        } else {
-            this.body.pop();
-        }
+        if (this.growSegments > 0) this.growSegments--;
+        else this.body.pop();
     }
 
     grow() {
@@ -33,7 +28,6 @@ export class Snake {
     }
 
     setDirection(dx, dy) {
-        // Prevent reversing
         if ((dx !== 0 && dx !== -this.dx) || (dy !== 0 && dy !== -this.dy)) {
             this.dx = dx;
             this.dy = dy;
@@ -42,23 +36,16 @@ export class Snake {
 
     checkCollision() {
         const head = this.body[0];
-        // Wall collision
-        if (head.x < 0 || head.x >= this.canvasWidth ||
-            head.y < 0 || head.y >= this.canvasHeight) {
-            return true;
-        }
-        // Self collision
+        if (head.x < 0 || head.x >= this.canvasWidth || head.y < 0 || head.y >= this.canvasHeight) return true;
         for (let i = 1; i < this.body.length; i++) {
-            if (head.x === this.body[i].x && head.y === this.body[i].y) {
-                return true;
-            }
+            if (head.x === this.body[i].x && head.y === this.body[i].y) return true;
         }
         return false;
     }
 
     draw(ctx) {
         ctx.fillStyle = "lime";
-        this.body.forEach(segment => ctx.fillRect(segment.x, segment.y, this.grid - 2, this.grid - 2));
+        this.body.forEach(seg => ctx.fillRect(seg.x, seg.y, this.grid - 2, this.grid - 2));
     }
 
     getHead() {
