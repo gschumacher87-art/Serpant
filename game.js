@@ -15,15 +15,6 @@ let gameRunning = false;
 let gameTimeout;
 const speed = 200; // halved speed
 
-// ===== Responsive canvas =====
-function resizeCanvas() {
-    const size = Math.min(window.innerWidth * 0.9, 400);
-    canvas.width = size;
-    canvas.height = size;
-}
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
-
 // ===== Start button =====
 const startBtn = document.createElement("button");
 startBtn.textContent = "Start Game";
@@ -42,20 +33,33 @@ startBtn.addEventListener("click", () => {
     }
 });
 
+// ===== Canvas resize (optional) =====
+canvas.width = 400;
+canvas.height = 400;
+
 // ===== Initialize game =====
 function initGame() {
-    grid = Math.floor(canvas.width / 20);
+    grid = 20;
 
     snake = new Snake(grid, canvas.width, canvas.height);
     obstacles = new Obstacles(grid, canvas.width, canvas.height, 5);
     food = new Food(grid, canvas.width, canvas.height);
 
-    // Generate obstacles first, then food
-    obstacles.generate(snake.body);
+    // Generate obstacles first (avoid snake)
+    obstacles.generate(snake.body, {x:-1, y:-1});
+
+    // Place food after obstacles
     food.randomPosition(snake.body, obstacles.list);
 
+    // Setup controls
     setupControls(snake, canvas);
+
     gameRunning = true;
+
+    // Draw first frame immediately
+    draw();
+
+    // Start game loop
     gameLoop();
 }
 
@@ -67,7 +71,6 @@ function gameLoop() {
         requestAnimationFrame(gameLoop);
 
         snake.move();
-
         const head = snake.getHead();
 
         // Check if snake eats food
@@ -76,7 +79,7 @@ function gameLoop() {
             food.randomPosition(snake.body, obstacles.list);
         }
 
-        // Check collision with walls, self, or obstacles
+        // Collision with walls, self, obstacles
         if (snake.checkCollision() || obstacles.checkCollision(head)) {
             gameOver();
         }
@@ -90,9 +93,9 @@ function draw() {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    snake.draw(ctx);
-    food.draw(ctx);
     obstacles.draw(ctx);
+    food.draw(ctx);
+    snake.draw(ctx);
 }
 
 // ===== Game over =====
