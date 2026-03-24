@@ -33,7 +33,7 @@ button:hover {
     color: #000;
 }
 
-/* ===== ON-SCREEN ARROW BUTTONS ===== */
+/* ===== ARROW CONTROLS GRID ===== */
 .arrow-controls {
     display: grid;
     grid-template-columns: repeat(3, 60px);
@@ -44,6 +44,7 @@ button:hover {
     left: 50%;
     transform: translateX(-50%);
 }
+
 .arrow-controls button {
     font-size: 24px;
     padding: 10px;
