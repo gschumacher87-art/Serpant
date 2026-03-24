@@ -32,3 +32,19 @@ button:hover {
     background-color: #0f0;
     color: #000;
 }
+
+/* ===== ON-SCREEN ARROW BUTTONS ===== */
+.arrow-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 60px);
+    grid-template-rows: repeat(2, 60px);
+    gap: 10px;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.arrow-controls button {
+    font-size: 24px;
+    padding: 10px;
+}
