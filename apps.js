@@ -11,15 +11,15 @@ resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
 // ===== Game variables =====
-const grid = 20;
+let grid; // will compute based on canvas
 let snake = [];
-let dx = grid;
+let dx = 0;
 let dy = 0;
 let food = {};
 let score = 0;
 let gameRunning = false;
 let gameTimeout;
-const speed = 200; // HALVED speed (was 100ms)
+const speed = 200; // halved speed
 
 // ===== Start button =====
 const startBtn = document.createElement("button");
@@ -51,7 +51,6 @@ controlsDiv.style.gridTemplateRows = "repeat(2, 60px)";
 controlsDiv.style.gap = "10px";
 document.body.appendChild(controlsDiv);
 
-// Create buttons
 const btnUp = document.createElement("button");
 btnUp.textContent = "↑";
 const btnLeft = document.createElement("button");
@@ -61,21 +60,18 @@ btnDown.textContent = "↓";
 const btnRight = document.createElement("button");
 btnRight.textContent = "→";
 
-// Arrange in grid
-controlsDiv.appendChild(document.createElement("div")); // empty
+controlsDiv.appendChild(document.createElement("div"));
 controlsDiv.appendChild(btnUp);
-controlsDiv.appendChild(document.createElement("div")); // empty
+controlsDiv.appendChild(document.createElement("div"));
 controlsDiv.appendChild(btnLeft);
 controlsDiv.appendChild(btnDown);
 controlsDiv.appendChild(btnRight);
 
-// Button styles
 [btnUp, btnDown, btnLeft, btnRight].forEach(b => {
     b.style.fontSize = "24px";
     b.style.padding = "10px";
 });
 
-// Button event listeners
 btnUp.addEventListener("click", () => { if(dy===0) { dx=0; dy=-grid; } });
 btnDown.addEventListener("click", () => { if(dy===0) { dx=0; dy=grid; } });
 btnLeft.addEventListener("click", () => { if(dx===0) { dx=-grid; dy=0; } });
@@ -83,7 +79,13 @@ btnRight.addEventListener("click", () => { if(dx===0) { dx=grid; dy=0; } });
 
 // ===== Initialize game =====
 function initGame() {
-    snake = [{ x: canvas.width / 2, y: canvas.height / 2 }];
+    grid = Math.floor(canvas.width / 20); // dynamically compute tiles
+    grid = Math.floor(canvas.width / Math.floor(canvas.width / 20)); // ensures integer size
+
+    snake = [{
+        x: Math.floor(canvas.width / 2 / grid) * grid,
+        y: Math.floor(canvas.height / 2 / grid) * grid
+    }];
     dx = grid;
     dy = 0;
     score = 0;
@@ -137,10 +139,11 @@ function draw() {
 
 // ===== Food =====
 function randomFood() {
-    const tiles = canvas.width / grid;
+    const tilesX = Math.floor(canvas.width / grid);
+    const tilesY = Math.floor(canvas.height / grid);
     return {
-        x: Math.floor(Math.random() * tiles) * grid,
-        y: Math.floor(Math.random() * tiles) * grid
+        x: Math.floor(Math.random() * tilesX) * grid,
+        y: Math.floor(Math.random() * tilesY) * grid
     };
 }
 
