@@ -1,7 +1,8 @@
+// ===== CANVAS SETUP =====
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// ===== Responsive canvas =====
+// ===== RESPONSIVE CANVAS =====
 function resizeCanvas() {
     const size = Math.min(window.innerWidth * 0.9, 400);
     canvas.width = size;
@@ -10,7 +11,7 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-// ===== Game variables =====
+// ===== GAME VARIABLES =====
 const grid = 20;
 let snake = [];
 let dx = grid;
@@ -20,7 +21,7 @@ let score = 0;
 let gameRunning = false;
 let gameInterval;
 
-// ===== Start button =====
+// ===== START BUTTON =====
 const startBtn = document.createElement("button");
 startBtn.textContent = "Start Game";
 startBtn.style.position = "absolute";
@@ -38,7 +39,7 @@ startBtn.addEventListener("click", () => {
     }
 });
 
-// ===== Arrow button controls =====
+// ===== ARROW BUTTON CONTROLS =====
 const controlsDiv = document.createElement("div");
 controlsDiv.className = "arrow-controls";
 document.body.appendChild(controlsDiv);
@@ -60,7 +61,7 @@ btnDown.addEventListener("click", () => { if(dy===0){ dx=0; dy=grid; } });
 btnLeft.addEventListener("click", () => { if(dx===0){ dx=-grid; dy=0; } });
 btnRight.addEventListener("click", () => { if(dx===0){ dx=grid; dy=0; } });
 
-// ===== Initialize game =====
+// ===== INITIALIZE GAME =====
 function initGame() {
     snake = [{ x: Math.floor(canvas.width/2/grid)*grid, y: Math.floor(canvas.height/2/grid)*grid }];
     dx = grid;
@@ -71,7 +72,7 @@ function initGame() {
     gameInterval = setInterval(gameLoop, 200);
 }
 
-// ===== Game loop =====
+// ===== GAME LOOP =====
 function gameLoop() {
     const head = { x: snake[0].x + dx, y: snake[0].y + dy };
     snake.unshift(head);
@@ -93,7 +94,7 @@ function gameLoop() {
     draw();
 }
 
-// ===== Draw =====
+// ===== DRAW FUNCTION =====
 function draw() {
     ctx.fillStyle = "black";
     ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -107,7 +108,7 @@ function draw() {
     ctx.fillRect(food.x, food.y, grid-2, grid-2);
 }
 
-// ===== Food =====
+// ===== RANDOM FOOD =====
 function randomFood() {
     const tilesX = Math.floor(canvas.width / grid);
     const tilesY = Math.floor(canvas.height / grid);
@@ -117,7 +118,7 @@ function randomFood() {
     };
 }
 
-// ===== Game over =====
+// ===== GAME OVER =====
 function gameOver() {
     gameRunning = false;
     clearInterval(gameInterval);
@@ -125,7 +126,7 @@ function gameOver() {
     startBtn.style.display = "block";
 }
 
-// ===== Keyboard controls =====
+// ===== KEYBOARD CONTROLS =====
 document.addEventListener("keydown", e => {
     if (!gameRunning) return;
     if (e.key === "ArrowLeft" && dx===0) { dx=-grid; dy=0; }
@@ -134,7 +135,7 @@ document.addEventListener("keydown", e => {
     else if (e.key === "ArrowDown" && dy===0) { dx=0; dy=grid; }
 });
 
-// ===== Touch swipe =====
+// ===== TOUCH SWIPE CONTROLS =====
 let touchStartX=0, touchStartY=0;
 canvas.addEventListener("touchstart", e => {
     touchStartX = e.touches[0].clientX;
