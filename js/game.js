@@ -63,6 +63,7 @@ btnRight.addEventListener("click", () => { if(snake.dx===0){ snake.setDirection(
 function initGame() {
     snake = new Snake(grid, canvas.width, canvas.height);
     food = new Food(grid, canvas.width, canvas.height);
+    food.randomPosition(snake.body); // ✅ FIXED
     score = 0;
     gameRunning = true;
     startBtn.style.display = "none";
@@ -78,7 +79,7 @@ function gameLoop() {
     if (head.x === food.position.x && head.y === food.position.y) {
         score++;
         snake.grow();
-        food.randomPosition();
+        food.randomPosition(snake.body); // ✅ FIXED
     }
 
     // Collision
@@ -115,10 +116,14 @@ document.addEventListener("keydown", e => {
 
 // ===== TOUCH SWIPE CONTROLS =====
 let touchStartX=0, touchStartY=0;
-canvas.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; });
+canvas.addEventListener("touchstart", e => { 
+    touchStartX = e.touches[0].clientX; 
+    touchStartY = e.touches[0].clientY; 
+});
 canvas.addEventListener("touchend", e => {
     const dxSwipe = e.changedTouches[0].clientX - touchStartX;
     const dySwipe = e.changedTouches[0].clientY - touchStartY;
+
     if(Math.abs(dxSwipe) > Math.abs(dySwipe)){
         if(dxSwipe>0 && snake.dx===0) snake.setDirection(grid,0);
         else if(dxSwipe<0 && snake.dx===0) snake.setDirection(-grid,0);
