@@ -67,10 +67,12 @@ function initGame() {
     score = 0;
     gameRunning = true;
     startBtn.style.display = "none";
-    gameInterval = setInterval(gameLoop, 200);
+    currentSpeed = 200; // track current interval
+    gameInterval = setInterval(gameLoop, currentSpeed);
 }
 
 // ===== GAME LOOP =====
+let currentSpeed;
 function gameLoop() {
     snake.move();
 
@@ -80,6 +82,13 @@ function gameLoop() {
         score++;
         snake.grow();
         food.randomPosition(snake.body); // ✅ FIXED
+
+        // Speed up every 5 food
+        if (score % 5 === 0) {
+            currentSpeed = Math.max(50, currentSpeed - 20); // faster, min 50ms
+            clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, currentSpeed);
+        }
     }
 
     // Collision
