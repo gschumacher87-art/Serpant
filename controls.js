@@ -35,14 +35,7 @@ export function setupControls(snake, canvas) {
 
     // ===== On-screen arrow buttons =====
     const controlsDiv = document.createElement("div");
-    controlsDiv.style.position = "absolute";
-    controlsDiv.style.bottom = "20px";
-    controlsDiv.style.left = "50%";
-    controlsDiv.style.transform = "translateX(-50%)";
-    controlsDiv.style.display = "grid";
-    controlsDiv.style.gridTemplateColumns = "repeat(3, 60px)";
-    controlsDiv.style.gridTemplateRows = "repeat(2, 60px)";
-    controlsDiv.style.gap = "10px";
+    controlsDiv.className = "arrow-controls"; // Use CSS class for styling
     document.body.appendChild(controlsDiv);
 
     const btnUp = document.createElement("button");
@@ -54,18 +47,15 @@ export function setupControls(snake, canvas) {
     const btnRight = document.createElement("button");
     btnRight.textContent = "→";
 
-    controlsDiv.appendChild(document.createElement("div"));
+    // Arrange buttons in grid
+    controlsDiv.appendChild(document.createElement("div")); // empty
     controlsDiv.appendChild(btnUp);
-    controlsDiv.appendChild(document.createElement("div"));
+    controlsDiv.appendChild(document.createElement("div")); // empty
     controlsDiv.appendChild(btnLeft);
     controlsDiv.appendChild(btnDown);
     controlsDiv.appendChild(btnRight);
 
-    [btnUp, btnDown, btnLeft, btnRight].forEach(b => {
-        b.style.fontSize = "24px";
-        b.style.padding = "10px";
-    });
-
+    // Add button event listeners
     btnUp.addEventListener("click", () => snake.setDirection(0, -snake.grid));
     btnDown.addEventListener("click", () => snake.setDirection(0, snake.grid));
     btnLeft.addEventListener("click", () => snake.setDirection(-snake.grid, 0));
