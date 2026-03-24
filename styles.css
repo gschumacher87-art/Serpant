@@ -33,7 +33,7 @@ button:hover {
     color: #000;
 }
 
-/* ===== ARROW CONTROLS GRID ===== */
+/* ===== ON-SCREEN ARROW BUTTONS ===== */
 .arrow-controls {
     display: grid;
     grid-template-columns: repeat(3, 60px);
