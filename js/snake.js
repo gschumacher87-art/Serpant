@@ -57,7 +57,29 @@ export class Snake {
     getHead() { return this.body[0]; }
 
     draw(ctx) {
+        // Draw snake body
         ctx.fillStyle = "lime";
         this.body.forEach(seg => ctx.fillRect(seg.x, seg.y, this.grid - 2, this.grid - 2));
+
+        // === Draw big eyes on head ===
+        const head = this.body[0];
+        const eyeSize = this.grid * 0.3;      // size of eyes
+        const pupilSize = eyeSize * 0.5;      // size of pupils
+        const eyeOffsetX = this.grid * 0.2;   // horizontal offset
+        const eyeOffsetY = this.grid * 0.2;   // vertical offset
+
+        // Eye whites
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(head.x + eyeOffsetX, head.y + eyeOffsetY, eyeSize, 0, Math.PI * 2);
+        ctx.arc(head.x + this.grid - eyeOffsetX, head.y + eyeOffsetY, eyeSize, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pupils
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.arc(head.x + eyeOffsetX, head.y + eyeOffsetY, pupilSize, 0, Math.PI * 2);
+        ctx.arc(head.x + this.grid - eyeOffsetX, head.y + eyeOffsetY, pupilSize, 0, Math.PI * 2);
+        ctx.fill();
     }
 }
