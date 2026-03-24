@@ -2,12 +2,14 @@
 import { Snake } from './snake.js';
 import { Food } from './food.js';
 import { setupControls } from './controls.js';
+import { Obstacles } from './obstacles.js';
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 let snake;
 let food;
+let obstacles;
 let grid = 20;
 let gameRunning = false;
 let gameTimeout;
@@ -43,8 +45,15 @@ startBtn.addEventListener("click", () => {
 // ===== Initialize game =====
 function initGame() {
     grid = Math.floor(canvas.width / 20);
+
     snake = new Snake(grid, canvas.width, canvas.height);
+    obstacles = new Obstacles(grid, canvas.width, canvas.height, 5);
     food = new Food(grid, canvas.width, canvas.height);
+
+    // Generate obstacles first, then food
+    obstacles.generate(snake.body);
+    food.randomPosition(snake.body, obstacles.list);
+
     setupControls(snake, canvas);
     gameRunning = true;
     gameLoop();
@@ -59,15 +68,16 @@ function gameLoop() {
 
         snake.move();
 
-        // Check if snake eats food
         const head = snake.getHead();
+
+        // Check if snake eats food
         if (head.x === food.position.x && head.y === food.position.y) {
             snake.grow();
-            food.randomPosition(snake.body);
+            food.randomPosition(snake.body, obstacles.list);
         }
 
-        // Check collision
-        if (snake.checkCollision()) {
+        // Check collision with walls, self, or obstacles
+        if (snake.checkCollision() || obstacles.checkCollision(head)) {
             gameOver();
         }
 
@@ -82,6 +92,7 @@ function draw() {
 
     snake.draw(ctx);
     food.draw(ctx);
+    obstacles.draw(ctx);
 }
 
 // ===== Game over =====
