@@ -1,3 +1,6 @@
+import { Snake } from './snake.js';
+import { Food } from './food.js';
+
 // ===== CANVAS SETUP =====
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -13,10 +16,8 @@ window.addEventListener("resize", resizeCanvas);
 
 // ===== GAME VARIABLES =====
 const grid = 20;
-let snake = [];
-let dx = grid;
-let dy = 0;
-let food = {};
+let snake;
+let food;
 let score = 0;
 let gameRunning = false;
 let gameInterval;
@@ -33,10 +34,7 @@ startBtn.style.fontSize = "16px";
 document.body.appendChild(startBtn);
 
 startBtn.addEventListener("click", () => {
-    if (!gameRunning) {
-        initGame();
-        startBtn.style.display = "none";
-    }
+    if (!gameRunning) initGame();
 });
 
 // ===== ARROW BUTTON CONTROLS =====
@@ -56,40 +54,35 @@ controlsDiv.appendChild(btnLeft);
 controlsDiv.appendChild(btnDown);
 controlsDiv.appendChild(btnRight);
 
-btnUp.addEventListener("click", () => { if(dy===0){ dx=0; dy=-grid; } });
-btnDown.addEventListener("click", () => { if(dy===0){ dx=0; dy=grid; } });
-btnLeft.addEventListener("click", () => { if(dx===0){ dx=-grid; dy=0; } });
-btnRight.addEventListener("click", () => { if(dx===0){ dx=grid; dy=0; } });
+btnUp.addEventListener("click", () => { if(snake.dy===0){ snake.setDirection(0,-grid); } });
+btnDown.addEventListener("click", () => { if(snake.dy===0){ snake.setDirection(0,grid); } });
+btnLeft.addEventListener("click", () => { if(snake.dx===0){ snake.setDirection(-grid,0); } });
+btnRight.addEventListener("click", () => { if(snake.dx===0){ snake.setDirection(grid,0); } });
 
 // ===== INITIALIZE GAME =====
 function initGame() {
-    snake = [{ x: Math.floor(canvas.width/2/grid)*grid, y: Math.floor(canvas.height/2/grid)*grid }];
-    dx = grid;
-    dy = 0;
+    snake = new Snake(grid, canvas.width, canvas.height);
+    food = new Food(grid, canvas.width, canvas.height);
     score = 0;
-    food = randomFood();
     gameRunning = true;
+    startBtn.style.display = "none";
     gameInterval = setInterval(gameLoop, 200);
 }
 
 // ===== GAME LOOP =====
 function gameLoop() {
-    const head = { x: snake[0].x + dx, y: snake[0].y + dy };
-    snake.unshift(head);
+    snake.move();
 
     // Eat food
-    if (head.x === food.x && head.y === food.y) {
+    const head = snake.getHead();
+    if (head.x === food.position.x && head.y === food.position.y) {
         score++;
-        food = randomFood();
-    } else {
-        snake.pop();
+        snake.grow();
+        food.randomPosition();
     }
 
-    // Collisions
-    if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height ||
-        snake.slice(1).some(seg => seg.x === head.x && seg.y === head.y)) {
-        gameOver();
-    }
+    // Collision
+    if (snake.checkCollision(canvas.width, canvas.height)) gameOver();
 
     draw();
 }
@@ -99,56 +92,38 @@ function draw() {
     ctx.fillStyle = "black";
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    // Snake
-    ctx.fillStyle = "lime";
-    snake.forEach(seg => ctx.fillRect(seg.x, seg.y, grid-2, grid-2));
-
-    // Food
-    ctx.fillStyle = "red";
-    ctx.fillRect(food.x, food.y, grid-2, grid-2);
-}
-
-// ===== RANDOM FOOD =====
-function randomFood() {
-    const tilesX = Math.floor(canvas.width / grid);
-    const tilesY = Math.floor(canvas.height / grid);
-    return {
-        x: Math.floor(Math.random()*tilesX)*grid,
-        y: Math.floor(Math.random()*tilesY)*grid
-    };
+    snake.draw(ctx);
+    food.draw(ctx);
 }
 
 // ===== GAME OVER =====
 function gameOver() {
     gameRunning = false;
     clearInterval(gameInterval);
-    alert("Game Over! Score: " + score);
+    alert(`Game Over! Score: ${score}`);
     startBtn.style.display = "block";
 }
 
 // ===== KEYBOARD CONTROLS =====
 document.addEventListener("keydown", e => {
     if (!gameRunning) return;
-    if (e.key === "ArrowLeft" && dx===0) { dx=-grid; dy=0; }
-    else if (e.key === "ArrowUp" && dy===0) { dx=0; dy=-grid; }
-    else if (e.key === "ArrowRight" && dx===0) { dx=grid; dy=0; }
-    else if (e.key === "ArrowDown" && dy===0) { dx=0; dy=grid; }
+    if (e.key === "ArrowLeft" && snake.dx===0) snake.setDirection(-grid,0);
+    else if (e.key === "ArrowUp" && snake.dy===0) snake.setDirection(0,-grid);
+    else if (e.key === "ArrowRight" && snake.dx===0) snake.setDirection(grid,0);
+    else if (e.key === "ArrowDown" && snake.dy===0) snake.setDirection(0,grid);
 });
 
 // ===== TOUCH SWIPE CONTROLS =====
 let touchStartX=0, touchStartY=0;
-canvas.addEventListener("touchstart", e => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-});
+canvas.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; });
 canvas.addEventListener("touchend", e => {
     const dxSwipe = e.changedTouches[0].clientX - touchStartX;
     const dySwipe = e.changedTouches[0].clientY - touchStartY;
     if(Math.abs(dxSwipe) > Math.abs(dySwipe)){
-        if(dxSwipe>0 && dx===0) dx=grid, dy=0;
-        else if(dxSwipe<0 && dx===0) dx=-grid, dy=0;
+        if(dxSwipe>0 && snake.dx===0) snake.setDirection(grid,0);
+        else if(dxSwipe<0 && snake.dx===0) snake.setDirection(-grid,0);
     } else {
-        if(dySwipe>0 && dy===0) dx=0, dy=grid;
-        else if(dySwipe<0 && dy===0) dx=0, dy=-grid;
+        if(dySwipe>0 && snake.dy===0) snake.setDirection(0,grid);
+        else if(dySwipe<0 && snake.dy===0) snake.setDirection(0,-grid);
     }
 });
