@@ -19,6 +19,7 @@ let food = {};
 let score = 0;
 let gameRunning = false;
 let gameTimeout;
+const speed = 200; // HALVED speed (was 100ms)
 
 // ===== Start button =====
 const startBtn = document.createElement("button");
@@ -37,6 +38,48 @@ startBtn.addEventListener("click", () => {
         startBtn.style.display = "none";
     }
 });
+
+// ===== Arrow button control panel =====
+const controlsDiv = document.createElement("div");
+controlsDiv.style.position = "absolute";
+controlsDiv.style.bottom = "20px";
+controlsDiv.style.left = "50%";
+controlsDiv.style.transform = "translateX(-50%)";
+controlsDiv.style.display = "grid";
+controlsDiv.style.gridTemplateColumns = "repeat(3, 60px)";
+controlsDiv.style.gridTemplateRows = "repeat(2, 60px)";
+controlsDiv.style.gap = "10px";
+document.body.appendChild(controlsDiv);
+
+// Create buttons
+const btnUp = document.createElement("button");
+btnUp.textContent = "↑";
+const btnLeft = document.createElement("button");
+btnLeft.textContent = "←";
+const btnDown = document.createElement("button");
+btnDown.textContent = "↓";
+const btnRight = document.createElement("button");
+btnRight.textContent = "→";
+
+// Arrange in grid
+controlsDiv.appendChild(document.createElement("div")); // empty
+controlsDiv.appendChild(btnUp);
+controlsDiv.appendChild(document.createElement("div")); // empty
+controlsDiv.appendChild(btnLeft);
+controlsDiv.appendChild(btnDown);
+controlsDiv.appendChild(btnRight);
+
+// Button styles
+[btnUp, btnDown, btnLeft, btnRight].forEach(b => {
+    b.style.fontSize = "24px";
+    b.style.padding = "10px";
+});
+
+// Button event listeners
+btnUp.addEventListener("click", () => { if(dy===0) { dx=0; dy=-grid; } });
+btnDown.addEventListener("click", () => { if(dy===0) { dx=0; dy=grid; } });
+btnLeft.addEventListener("click", () => { if(dx===0) { dx=-grid; dy=0; } });
+btnRight.addEventListener("click", () => { if(dx===0) { dx=grid; dy=0; } });
 
 // ===== Initialize game =====
 function initGame() {
@@ -77,7 +120,7 @@ function gameLoop() {
         }
 
         draw();
-    }, 100);
+    }, speed);
 }
 
 // ===== Draw =====
@@ -129,11 +172,9 @@ canvas.addEventListener("touchend", e => {
     const dySwipe = touchEndY - touchStartY;
 
     if (Math.abs(dxSwipe) > Math.abs(dySwipe)) {
-        // Horizontal swipe
         if (dxSwipe > 0 && dx === 0) { dx = grid; dy = 0; }
         else if (dxSwipe < 0 && dx === 0) { dx = -grid; dy = 0; }
     } else {
-        // Vertical swipe
         if (dySwipe > 0 && dy === 0) { dx = 0; dy = grid; }
         else if (dySwipe < 0 && dy === 0) { dx = 0; dy = -grid; }
     }
