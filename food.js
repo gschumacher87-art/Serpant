@@ -3,13 +3,14 @@ export class Food {
         this.grid = grid;
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
-        this.position = {x:0, y:0};
+        this.position = this.randomPosition();
     }
 
     randomPosition(snakeBody = [], obstacles = []) {
         const tilesX = Math.floor(this.canvasWidth / this.grid);
         const tilesY = Math.floor(this.canvasHeight / this.grid);
-        let x, y, safe = false;
+        let x, y;
+        let safe = false;
 
         while (!safe) {
             x = Math.floor(Math.random() * tilesX) * this.grid;
@@ -21,7 +22,7 @@ export class Food {
             safe = !onSnake && !onObstacle;
         }
 
-        this.position = {x, y};
+        this.position = { x, y };
         return this.position;
     }
 
