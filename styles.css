@@ -1,17 +1,50 @@
+/* ===== GLOBAL ===== */
 body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: #111;
-  margin: 0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #111;
+    font-family: Arial, sans-serif;
 }
 
+/* ===== CANVAS ===== */
 canvas {
-  background: #000;
-  border: 2px solid #0f0;
-  width: 90vw;
-  height: 90vw;
-  max-width: 400px;
-  max-height: 400px;
+    background-color: #000;
+    border: 2px solid #0f0;
+    display: block;
+}
+
+/* ===== BUTTONS ===== */
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #222;
+    color: #0f0;
+    font-weight: bold;
+    transition: background 0.2s, color 0.2s;
+}
+
+button:hover {
+    background-color: #0f0;
+    color: #000;
+}
+
+/* ===== ON-SCREEN ARROW BUTTONS GRID ===== */
+.arrow-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 60px);
+    grid-template-rows: repeat(2, 60px);
+    gap: 10px;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.arrow-controls button {
+    font-size: 24px;
+    padding: 10px;
 }
