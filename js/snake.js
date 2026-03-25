@@ -14,13 +14,20 @@ export class Snake {
 
         this.tongueOut = false;
         this.tongueTimer = 0;
+
+        // === REALISTIC TEXTURE ===
+        this.scalePattern = null;
+        const img = new Image();
+        img.src = "scales.png"; // supply a seamless snake scale texture
+        img.onload = () => {
+            this.scalePattern = img;
+        };
     }
 
     reset(canvasWidth, canvasHeight) {
         const startX = Math.floor(canvasWidth / 2 / this.grid) * this.grid;
         const startY = Math.floor(canvasHeight / 2 / this.grid) * this.grid;
 
-        // === START WITH 3 SEGMENTS ===
         this.body = [
             { x: startX, y: startY },
             { x: startX - this.grid, y: startY },
@@ -43,11 +50,8 @@ export class Snake {
         const head = { x: this.body[0].x + this.dx, y: this.body[0].y + this.dy };
         this.body.unshift(head);
 
-        if (this.growSegments > 0) {
-            this.growSegments--;
-        } else {
-            this.body.pop();
-        }
+        if (this.growSegments > 0) this.growSegments--;
+        else this.body.pop();
 
         // === MOUTH ===
         this.mouthTimer++;
@@ -72,9 +76,7 @@ export class Snake {
         }
     }
 
-    grow() {
-        this.growSegments++;
-    }
+    grow() { this.growSegments++; }
 
     setDirection(dx, dy) {
         if ((dx !== 0 && dx !== -this.dx) || (dy !== 0 && dy !== -this.dy)) {
@@ -85,158 +87,136 @@ export class Snake {
 
     checkCollision(canvasWidth, canvasHeight) {
         const head = this.body[0];
-
         if (head.x < 0 || head.x >= canvasWidth || head.y < 0 || head.y >= canvasHeight) return true;
-
-        for (let i = 1; i < this.body.length; i++) {
+        for (let i = 1; i < this.body.length; i++)
             if (head.x === this.body[i].x && head.y === this.body[i].y) return true;
-        }
-
         return false;
     }
 
     getHead() { return this.body[0]; }
 
+    // ===== NEW DRAW METHOD (REALISTIC) =====
     draw(ctx) {
         const head = this.body[0];
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
 
-        // ===== REALISTIC BODY (NATURAL TAPER) =====
-ctx.lineCap = "round";
-ctx.lineJoin = "round";
-ctx.strokeStyle = "lime";
+        // ===== REALISTIC BODY =====
+        for (let i = 0; i < this.body.length - 1; i++) {
+            const seg = this.body[i];
+            const next = this.body[i + 1];
 
-ctx.beginPath();
+            const x1 = seg.x + this.grid / 2;
+            const y1 = seg.y + this.grid / 2;
+            const x2 = next.x + this.grid / 2;
+            const y2 = next.y + this.grid / 2;
 
-for (let i = 0; i < this.body.length; i++) {
-    const seg = this.body[i];
-    const x = seg.x + this.grid / 2;
-    const y = seg.y + this.grid / 2;
+            const width = this.grid * (1 - i / this.body.length) * 0.9;
 
-    if (i === 0) {
-        ctx.moveTo(x, y);
-    } else {
-        const prev = this.body[i - 1];
-        const px = prev.x + this.grid / 2;
-        const py = prev.y + this.grid / 2;
+            ctx.lineWidth = width;
 
-        const cx = (px + x) / 2;
-        const cy = (py + y) / 2;
+            // ===== BEFORE =====
+            // ctx.strokeStyle = "lime";
 
-        ctx.quadraticCurveTo(px, py, cx, cy);
-    }
-}
+            // ===== AFTER (gradient + texture) =====
+            if (this.scalePattern) {
+                const pattern = ctx.createPattern(this.scalePattern, "repeat");
+                ctx.strokeStyle = pattern;
+            } else {
+                const grad = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+                grad.addColorStop(0, "#3a5f2a"); // light
+                grad.addColorStop(1, "#0f2e13"); // dark
+                ctx.strokeStyle = grad;
+            }
 
-// 👇 key change: slight taper only
-const base = this.grid * 0.9;
-const taper = this.grid * 0.35;
-ctx.lineWidth = base - taper * 0.5;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
 
-ctx.stroke();
+        // ===== TAIL POINT =====
+        const tail = this.body[this.body.length - 1];
+        const beforeTail = this.body[this.body.length - 2];
 
+        const tx = tail.x + this.grid / 2;
+        const ty = tail.y + this.grid / 2;
+        const bx = beforeTail.x + this.grid / 2;
+        const by = beforeTail.y + this.grid / 2;
 
-// ===== CLEAN POINTED TAIL =====
-const tail = this.body[this.body.length - 1];
-const beforeTail = this.body[this.body.length - 2];
+        const angle = Math.atan2(ty - by, tx - bx);
 
-const tx = tail.x + this.grid / 2;
-const ty = tail.y + this.grid / 2;
+        ctx.fillStyle = "#1f4e20";
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(tx - Math.cos(angle + 0.2) * this.grid * 0.6, ty - Math.sin(angle + 0.2) * this.grid * 0.6);
+        ctx.lineTo(tx - Math.cos(angle - 0.2) * this.grid * 0.6, ty - Math.sin(angle - 0.2) * this.grid * 0.6);
+        ctx.closePath();
+        ctx.fill();
 
-const bx = beforeTail.x + this.grid / 2;
-const by = beforeTail.y + this.grid / 2;
-
-const angle = Math.atan2(ty - by, tx - bx);
-
-ctx.fillStyle = "lime";
-ctx.beginPath();
-ctx.moveTo(tx, ty);
-ctx.lineTo(
-    tx - Math.cos(angle + 0.2) * this.grid * 0.6,
-    ty - Math.sin(angle + 0.2) * this.grid * 0.6
-);
-ctx.lineTo(
-    tx - Math.cos(angle - 0.2) * this.grid * 0.6,
-    ty - Math.sin(angle - 0.2) * this.grid * 0.6
-);
-ctx.closePath();
-ctx.fill();
         // ===== HEAD =====
         const hx = head.x + this.grid / 2;
         const hy = head.y + this.grid / 2;
-        const r = this.grid / 2;
+        const hr = this.grid * 0.6;
 
+        ctx.fillStyle = "#2e7d32";
         ctx.beginPath();
-        ctx.arc(hx, hy, r, 0, Math.PI * 2);
+        ctx.ellipse(hx, hy, hr, hr * 0.6, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // ===== EYES =====
-        const eyeOffsetX = this.grid * 0.25;
-        const eyeOffsetY = this.grid * 0.25;
+        const eyeOffsetX = this.grid * 0.2;
+        const eyeOffsetY = this.grid * 0.15;
 
         if (!this.blink) {
             ctx.fillStyle = "white";
             ctx.beginPath();
-            ctx.arc(head.x + eyeOffsetX, head.y + eyeOffsetY, this.grid * 0.25, 0, Math.PI * 2);
-            ctx.arc(head.x + this.grid - eyeOffsetX, head.y + eyeOffsetY, this.grid * 0.25, 0, Math.PI * 2);
+            ctx.arc(head.x + eyeOffsetX, head.y + eyeOffsetY, this.grid * 0.12, 0, Math.PI * 2);
+            ctx.arc(head.x + this.grid - eyeOffsetX, head.y + eyeOffsetY, this.grid * 0.12, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.fillStyle = "black";
             ctx.beginPath();
-            ctx.arc(head.x + eyeOffsetX, head.y + eyeOffsetY, this.grid * 0.12, 0, Math.PI * 2);
-            ctx.arc(head.x + this.grid - eyeOffsetX, head.y + eyeOffsetY, this.grid * 0.12, 0, Math.PI * 2);
+            ctx.arc(head.x + eyeOffsetX, head.y + eyeOffsetY, this.grid * 0.06, 0, Math.PI * 2);
+            ctx.arc(head.x + this.grid - eyeOffsetX, head.y + eyeOffsetY, this.grid * 0.06, 0, Math.PI * 2);
             ctx.fill();
         } else {
             ctx.strokeStyle = "black";
             ctx.lineWidth = 2;
-
             ctx.beginPath();
-            ctx.moveTo(head.x + eyeOffsetX - 5, head.y + eyeOffsetY);
-            ctx.lineTo(head.x + eyeOffsetX + 5, head.y + eyeOffsetY);
-
-            ctx.moveTo(head.x + this.grid - eyeOffsetX - 5, head.y + eyeOffsetY);
-            ctx.lineTo(head.x + this.grid - eyeOffsetX + 5, head.y + eyeOffsetY);
+            ctx.moveTo(head.x + eyeOffsetX - 3, head.y + eyeOffsetY);
+            ctx.lineTo(head.x + eyeOffsetX + 3, head.y + eyeOffsetY);
+            ctx.moveTo(head.x + this.grid - eyeOffsetX - 3, head.y + eyeOffsetY);
+            ctx.lineTo(head.x + this.grid - eyeOffsetX + 3, head.y + eyeOffsetY);
             ctx.stroke();
         }
 
         // ===== MOUTH =====
         ctx.strokeStyle = "black";
         ctx.lineWidth = 2;
-
         ctx.beginPath();
-
         if (this.mouthOpen) {
             ctx.moveTo(head.x + this.grid * 0.3, head.y + this.grid * 0.7);
-            ctx.quadraticCurveTo(
-                head.x + this.grid * 0.5,
-                head.y + this.grid * 1.0,
-                head.x + this.grid * 0.7,
-                head.y + this.grid * 0.7
-            );
+            ctx.quadraticCurveTo(head.x + this.grid * 0.5, head.y + this.grid * 1.0, head.x + this.grid * 0.7, head.y + this.grid * 0.7);
         } else {
             ctx.moveTo(head.x + this.grid * 0.3, head.y + this.grid * 0.75);
             ctx.lineTo(head.x + this.grid * 0.7, head.y + this.grid * 0.75);
         }
-
         ctx.stroke();
 
         // ===== TONGUE =====
         if (this.tongueOut) {
             ctx.strokeStyle = "red";
             ctx.lineWidth = 2;
-
             ctx.beginPath();
-
             const tx2 = head.x + this.grid * 0.5;
             const ty2 = head.y + this.grid * 0.8;
-
             ctx.moveTo(tx2, ty2);
             ctx.lineTo(tx2, ty2 + this.grid * 0.4);
-
             ctx.moveTo(tx2, ty2 + this.grid * 0.4);
             ctx.lineTo(tx2 - 4, ty2 + this.grid * 0.5);
-
             ctx.moveTo(tx2, ty2 + this.grid * 0.4);
             ctx.lineTo(tx2 + 4, ty2 + this.grid * 0.5);
-
             ctx.stroke();
         }
     }
