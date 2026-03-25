@@ -26,7 +26,6 @@ export class Snake {
         this.dx = this.grid;
         this.dy = 0;
         this.growSegments = 0;
-
         this.mouthOpen = true;
         this.mouthTimer = 0;
         this.blink = false;
@@ -66,14 +65,12 @@ export class Snake {
     getHead() { return this.body[0]; }
 
     animate() {
-        // Mouth animation
         this.mouthTimer++;
         if (this.mouthTimer > 6) {
             this.mouthOpen = !this.mouthOpen;
             this.mouthTimer = 0;
         }
 
-        // Blink animation
         this.blinkTimer++;
         if (this.blinkTimer > 40) this.blink = true;
         if (this.blinkTimer > 45) {
@@ -81,7 +78,6 @@ export class Snake {
             this.blinkTimer = 0;
         }
 
-        // Tongue animation
         this.tongueTimer++;
         if (this.tongueTimer > 20) {
             this.tongueOut = !this.tongueOut;
@@ -97,23 +93,23 @@ export class Snake {
         const width = this.grid;
         const height = this.grid * 0.8;
 
-        // Rotate snake head
         const angle = Math.atan2(this.dy, this.dx);
         ctx.save();
         ctx.translate(hx, hy);
         ctx.rotate(angle);
 
-        // ---- HEAD SHAPE (triangular snout) ----
+        // ---- LIFELIKE HEAD SHAPE ----
         ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(width * 0.6, -height * 0.5);
-        ctx.lineTo(width * 0.6, height * 0.5);
+        ctx.moveTo(0, 0); // back of head
+        ctx.bezierCurveTo(width * 0.5, -height * 0.4, width * 0.6, -height * 0.2, width * 0.6, 0); // upper snout
+        ctx.bezierCurveTo(width * 0.6, height * 0.2, width * 0.5, height * 0.4, 0, 0); // lower jaw
         ctx.closePath();
 
-        // Head gradient
-        const grad = ctx.createLinearGradient(0, -height * 0.5, width * 0.6, height * 0.5);
-        grad.addColorStop(0, "#7BC043");
-        grad.addColorStop(1, "#2E7D32");
+        // Gradient for depth
+        const grad = ctx.createLinearGradient(0, -height * 0.4, width * 0.6, height * 0.4);
+        grad.addColorStop(0, "#9CF553"); // highlight
+        grad.addColorStop(0.7, "#4B8C2F"); // mid
+        grad.addColorStop(1, "#2E7D32"); // shadow
         ctx.fillStyle = grad;
         ctx.fill();
         ctx.strokeStyle = "#1B5E20";
@@ -121,38 +117,56 @@ export class Snake {
         ctx.stroke();
 
         // ---- SCALES ----
-        const scaleSize = width * 0.08;
-        for (let y = -height * 0.45; y < height * 0.45; y += scaleSize) {
-            for (let x = 0; x < width * 0.55; x += scaleSize) {
+        const rows = 6;
+        const cols = 8;
+        const scaleW = width / cols;
+        const scaleH = height / rows;
+        for (let i = 0; i < cols; i++) {
+            for (let j = 0; j < rows; j++) {
+                const x = i * scaleW;
+                const y = -height / 2 + j * scaleH + scaleH / 2;
                 ctx.beginPath();
-                ctx.arc(x, y + (x % (scaleSize * 2) ? 0 : scaleSize / 2), scaleSize / 2, 0, Math.PI * 2);
-                ctx.fillStyle = "rgba(0,0,0,0.05)";
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + scaleW * 0.6, y - scaleH * 0.3);
+                ctx.lineTo(x + scaleW * 0.6, y + scaleH * 0.3);
+                ctx.lineTo(x, y);
+                ctx.closePath();
+                ctx.fillStyle = `rgba(0,0,0,${0.05 + 0.03 * Math.random()})`;
                 ctx.fill();
             }
         }
 
         // ---- EYES ----
-        const eyeX = width * 0.35;
-        const eyeY = height * 0.25;
+        const eyeX = width * 0.45;
+        const eyeY = height * 0.18;
         if (!this.blink) {
             // Left eye
             ctx.fillStyle = "#FFFFFF";
             ctx.beginPath();
-            ctx.ellipse(eyeX, -eyeY, scaleSize * 1.5, scaleSize * 2, 0, 0, Math.PI * 2);
+            ctx.ellipse(eyeX, -eyeY, scaleW * 1.2, scaleH * 0.8, 0, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = "#000000";
             ctx.beginPath();
-            ctx.ellipse(eyeX, -eyeY, scaleSize * 0.7, scaleSize * 1, 0, 0, Math.PI * 2);
+            ctx.ellipse(eyeX, -eyeY, scaleW * 0.6, scaleH * 0.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // highlight
+            ctx.fillStyle = "rgba(255,255,255,0.7)";
+            ctx.beginPath();
+            ctx.arc(eyeX - scaleW * 0.1, -eyeY - scaleH * 0.1, scaleW * 0.2, 0, Math.PI * 2);
             ctx.fill();
 
             // Right eye
             ctx.fillStyle = "#FFFFFF";
             ctx.beginPath();
-            ctx.ellipse(eyeX, eyeY, scaleSize * 1.5, scaleSize * 2, 0, 0, Math.PI * 2);
+            ctx.ellipse(eyeX, eyeY, scaleW * 1.2, scaleH * 0.8, 0, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = "#000000";
             ctx.beginPath();
-            ctx.ellipse(eyeX, eyeY, scaleSize * 0.7, scaleSize * 1, 0, 0, Math.PI * 2);
+            ctx.ellipse(eyeX, eyeY, scaleW * 0.6, scaleH * 0.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "rgba(255,255,255,0.7)";
+            ctx.beginPath();
+            ctx.arc(eyeX - scaleW * 0.1, eyeY - scaleH * 0.1, scaleW * 0.2, 0, Math.PI * 2);
             ctx.fill();
         }
 
@@ -160,8 +174,8 @@ export class Snake {
         ctx.strokeStyle = "#1B5E20";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        if (this.mouthOpen) ctx.moveTo(width * 0.1, -height * 0.2), ctx.quadraticCurveTo(width * 0.5, 0, width * 0.1, height * 0.2);
-        else ctx.moveTo(width * 0.1, -height * 0.1), ctx.quadraticCurveTo(width * 0.5, 0, width * 0.1, height * 0.1);
+        if (this.mouthOpen) ctx.moveTo(width * 0.1, -height * 0.15), ctx.quadraticCurveTo(width * 0.55, 0, width * 0.1, height * 0.15);
+        else ctx.moveTo(width * 0.1, -height * 0.08), ctx.quadraticCurveTo(width * 0.55, 0, width * 0.1, height * 0.08);
         ctx.stroke();
 
         // ---- TONGUE ----
@@ -170,9 +184,9 @@ export class Snake {
             ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.moveTo(width * 0.55, 0);
-            ctx.lineTo(width * 0.8, -height * 0.15);
+            ctx.lineTo(width * 0.8, -height * 0.12);
             ctx.moveTo(width * 0.55, 0);
-            ctx.lineTo(width * 0.8, height * 0.15);
+            ctx.lineTo(width * 0.8, height * 0.12);
             ctx.stroke();
         }
 
