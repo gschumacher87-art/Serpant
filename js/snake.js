@@ -100,37 +100,37 @@ export class Snake {
     draw(ctx) {
         const head = this.body[0];
 
-        // ===== REALISTIC SLITHER BODY (TAPERED) =====
+        // ===== REALISTIC SMOOTH BODY =====
 ctx.lineCap = "round";
 ctx.lineJoin = "round";
+ctx.strokeStyle = "lime";
 
-for (let i = 0; i < this.body.length - 1; i++) {
+ctx.beginPath();
+
+for (let i = 0; i < this.body.length; i++) {
     const seg = this.body[i];
-    const next = this.body[i + 1];
+    const x = seg.x + this.grid / 2;
+    const y = seg.y + this.grid / 2;
 
-    const x1 = seg.x + this.grid / 2;
-    const y1 = seg.y + this.grid / 2;
-    const x2 = next.x + this.grid / 2;
-    const y2 = next.y + this.grid / 2;
+    if (i === 0) {
+        ctx.moveTo(x, y);
+    } else {
+        const prev = this.body[i - 1];
+        const px = prev.x + this.grid / 2;
+        const py = prev.y + this.grid / 2;
 
-    // taper from thick head to thin tail
-    const t = i / this.body.length;
-    const width = this.grid * (1 - t * 0.7);
+        const cx = (px + x) / 2;
+        const cy = (py + y) / 2;
 
-    ctx.strokeStyle = "lime";
-    ctx.lineWidth = width;
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-
-    const cx = (x1 + x2) / 2;
-    const cy = (y1 + y2) / 2;
-
-    ctx.quadraticCurveTo(x1, y1, cx, cy);
-    ctx.stroke();
+        ctx.quadraticCurveTo(px, py, cx, cy);
+    }
 }
 
-// ===== SHARP POINTED TAIL =====
+// subtle, natural thickness
+ctx.lineWidth = this.grid * 0.85;
+ctx.stroke();
+
+// ===== SUBTLE TAIL =====
 const tail = this.body[this.body.length - 1];
 const beforeTail = this.body[this.body.length - 2];
 
@@ -142,20 +142,16 @@ const by = beforeTail.y + this.grid / 2;
 
 const angle = Math.atan2(ty - by, tx - bx);
 
-ctx.fillStyle = "lime";
+ctx.strokeStyle = "lime";
+ctx.lineWidth = this.grid * 0.4;
+
 ctx.beginPath();
 ctx.moveTo(tx, ty);
 ctx.lineTo(
-    tx - Math.cos(angle + 0.4) * this.grid * 0.8,
-    ty - Math.sin(angle + 0.4) * this.grid * 0.8
+    tx - Math.cos(angle) * this.grid * 0.6,
+    ty - Math.sin(angle) * this.grid * 0.6
 );
-ctx.lineTo(
-    tx - Math.cos(angle - 0.4) * this.grid * 0.8,
-    ty - Math.sin(angle - 0.4) * this.grid * 0.8
-);
-ctx.closePath();
-ctx.fill();
-
+ctx.stroke();
         // ===== HEAD =====
         const hx = head.x + this.grid / 2;
         const hy = head.y + this.grid / 2;
