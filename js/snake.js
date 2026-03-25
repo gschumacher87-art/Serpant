@@ -100,60 +100,61 @@ export class Snake {
     draw(ctx) {
         const head = this.body[0];
 
-        // ===== SLITHER BODY =====
-        ctx.strokeStyle = "lime";
-        ctx.lineWidth = this.grid;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
+        // ===== REALISTIC SLITHER BODY (TAPERED) =====
+ctx.lineCap = "round";
+ctx.lineJoin = "round";
 
-        ctx.beginPath();
+for (let i = 0; i < this.body.length - 1; i++) {
+    const seg = this.body[i];
+    const next = this.body[i + 1];
 
-        for (let i = 0; i < this.body.length; i++) {
-            const seg = this.body[i];
-            const x = seg.x + this.grid / 2;
-            const y = seg.y + this.grid / 2;
+    const x1 = seg.x + this.grid / 2;
+    const y1 = seg.y + this.grid / 2;
+    const x2 = next.x + this.grid / 2;
+    const y2 = next.y + this.grid / 2;
 
-            if (i === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                const prev = this.body[i - 1];
-                const px = prev.x + this.grid / 2;
-                const py = prev.y + this.grid / 2;
+    // taper from thick head to thin tail
+    const t = i / this.body.length;
+    const width = this.grid * (1 - t * 0.7);
 
-                const mx = (x + px) / 2;
-                const my = (y + py) / 2;
+    ctx.strokeStyle = "lime";
+    ctx.lineWidth = width;
 
-                ctx.quadraticCurveTo(px, py, mx, my);
-            }
-        }
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
 
-        ctx.stroke();
+    const cx = (x1 + x2) / 2;
+    const cy = (y1 + y2) / 2;
 
-        // ===== POINTED TAIL =====
-        const tail = this.body[this.body.length - 1];
-        const beforeTail = this.body[this.body.length - 2];
+    ctx.quadraticCurveTo(x1, y1, cx, cy);
+    ctx.stroke();
+}
 
-        const tx = tail.x + this.grid / 2;
-        const ty = tail.y + this.grid / 2;
+// ===== SHARP POINTED TAIL =====
+const tail = this.body[this.body.length - 1];
+const beforeTail = this.body[this.body.length - 2];
 
-        const bx = beforeTail.x + this.grid / 2;
-        const by = beforeTail.y + this.grid / 2;
+const tx = tail.x + this.grid / 2;
+const ty = tail.y + this.grid / 2;
 
-        const angle = Math.atan2(ty - by, tx - bx);
+const bx = beforeTail.x + this.grid / 2;
+const by = beforeTail.y + this.grid / 2;
 
-        ctx.fillStyle = "lime";
-        ctx.beginPath();
-        ctx.moveTo(tx, ty);
-        ctx.lineTo(
-            tx - Math.cos(angle + 0.5) * this.grid,
-            ty - Math.sin(angle + 0.5) * this.grid
-        );
-        ctx.lineTo(
-            tx - Math.cos(angle - 0.5) * this.grid,
-            ty - Math.sin(angle - 0.5) * this.grid
-        );
-        ctx.closePath();
-        ctx.fill();
+const angle = Math.atan2(ty - by, tx - bx);
+
+ctx.fillStyle = "lime";
+ctx.beginPath();
+ctx.moveTo(tx, ty);
+ctx.lineTo(
+    tx - Math.cos(angle + 0.4) * this.grid * 0.8,
+    ty - Math.sin(angle + 0.4) * this.grid * 0.8
+);
+ctx.lineTo(
+    tx - Math.cos(angle - 0.4) * this.grid * 0.8,
+    ty - Math.sin(angle - 0.4) * this.grid * 0.8
+);
+ctx.closePath();
+ctx.fill();
 
         // ===== HEAD =====
         const hx = head.x + this.grid / 2;
