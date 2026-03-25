@@ -100,7 +100,7 @@ export class Snake {
     draw(ctx) {
         const head = this.body[0];
 
-        // ===== REALISTIC SMOOTH BODY =====
+        // ===== REALISTIC BODY (NATURAL TAPER) =====
 ctx.lineCap = "round";
 ctx.lineJoin = "round";
 ctx.strokeStyle = "lime";
@@ -126,11 +126,15 @@ for (let i = 0; i < this.body.length; i++) {
     }
 }
 
-// subtle, natural thickness
-ctx.lineWidth = this.grid * 0.85;
+// 👇 key change: slight taper only
+const base = this.grid * 0.9;
+const taper = this.grid * 0.35;
+ctx.lineWidth = base - taper * 0.5;
+
 ctx.stroke();
 
-// ===== SUBTLE TAIL =====
+
+// ===== CLEAN POINTED TAIL =====
 const tail = this.body[this.body.length - 1];
 const beforeTail = this.body[this.body.length - 2];
 
@@ -142,16 +146,19 @@ const by = beforeTail.y + this.grid / 2;
 
 const angle = Math.atan2(ty - by, tx - bx);
 
-ctx.strokeStyle = "lime";
-ctx.lineWidth = this.grid * 0.4;
-
+ctx.fillStyle = "lime";
 ctx.beginPath();
 ctx.moveTo(tx, ty);
 ctx.lineTo(
-    tx - Math.cos(angle) * this.grid * 0.6,
-    ty - Math.sin(angle) * this.grid * 0.6
+    tx - Math.cos(angle + 0.2) * this.grid * 0.6,
+    ty - Math.sin(angle + 0.2) * this.grid * 0.6
 );
-ctx.stroke();
+ctx.lineTo(
+    tx - Math.cos(angle - 0.2) * this.grid * 0.6,
+    ty - Math.sin(angle - 0.2) * this.grid * 0.6
+);
+ctx.closePath();
+ctx.fill();
         // ===== HEAD =====
         const hx = head.x + this.grid / 2;
         const hy = head.y + this.grid / 2;
