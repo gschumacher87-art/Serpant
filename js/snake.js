@@ -17,10 +17,16 @@ export class Snake {
     }
 
     reset(canvasWidth, canvasHeight) {
-        this.body = [{
-            x: Math.floor(canvasWidth / 2 / this.grid) * this.grid,
-            y: Math.floor(canvasHeight / 2 / this.grid) * this.grid
-        }];
+        const startX = Math.floor(canvasWidth / 2 / this.grid) * this.grid;
+        const startY = Math.floor(canvasHeight / 2 / this.grid) * this.grid;
+
+        // === START WITH 3 SEGMENTS ===
+        this.body = [
+            { x: startX, y: startY },
+            { x: startX - this.grid, y: startY },
+            { x: startX - this.grid * 2, y: startY }
+        ];
+
         this.dx = this.grid;
         this.dy = 0;
         this.growSegments = 0;
@@ -52,9 +58,7 @@ export class Snake {
 
         // === BLINK ===
         this.blinkTimer++;
-        if (this.blinkTimer > 40) {
-            this.blink = true;
-        }
+        if (this.blinkTimer > 40) this.blink = true;
         if (this.blinkTimer > 45) {
             this.blink = false;
             this.blinkTimer = 0;
@@ -96,23 +100,62 @@ export class Snake {
     draw(ctx) {
         const head = this.body[0];
 
-        // ===== SOLID BODY =====
-        ctx.fillStyle = "lime";
+        // ===== SLITHER BODY =====
+        ctx.strokeStyle = "lime";
+        ctx.lineWidth = this.grid;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+
         ctx.beginPath();
 
-        this.body.forEach((seg) => {
-            ctx.arc(
-                seg.x + this.grid / 2,
-                seg.y + this.grid / 2,
-                this.grid / 2,
-                0,
-                Math.PI * 2
-            );
-        });
+        for (let i = 0; i < this.body.length; i++) {
+            const seg = this.body[i];
+            const x = seg.x + this.grid / 2;
+            const y = seg.y + this.grid / 2;
 
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                const prev = this.body[i - 1];
+                const px = prev.x + this.grid / 2;
+                const py = prev.y + this.grid / 2;
+
+                const mx = (x + px) / 2;
+                const my = (y + py) / 2;
+
+                ctx.quadraticCurveTo(px, py, mx, my);
+            }
+        }
+
+        ctx.stroke();
+
+        // ===== POINTED TAIL =====
+        const tail = this.body[this.body.length - 1];
+        const beforeTail = this.body[this.body.length - 2];
+
+        const tx = tail.x + this.grid / 2;
+        const ty = tail.y + this.grid / 2;
+
+        const bx = beforeTail.x + this.grid / 2;
+        const by = beforeTail.y + this.grid / 2;
+
+        const angle = Math.atan2(ty - by, tx - bx);
+
+        ctx.fillStyle = "lime";
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(
+            tx - Math.cos(angle + 0.5) * this.grid,
+            ty - Math.sin(angle + 0.5) * this.grid
+        );
+        ctx.lineTo(
+            tx - Math.cos(angle - 0.5) * this.grid,
+            ty - Math.sin(angle - 0.5) * this.grid
+        );
+        ctx.closePath();
         ctx.fill();
 
-        // ===== HEAD (slightly bigger) =====
+        // ===== HEAD =====
         const hx = head.x + this.grid / 2;
         const hy = head.y + this.grid / 2;
         const r = this.grid / 2;
@@ -138,7 +181,6 @@ export class Snake {
             ctx.arc(head.x + this.grid - eyeOffsetX, head.y + eyeOffsetY, this.grid * 0.12, 0, Math.PI * 2);
             ctx.fill();
         } else {
-            // blinking (line eyes)
             ctx.strokeStyle = "black";
             ctx.lineWidth = 2;
 
@@ -179,18 +221,17 @@ export class Snake {
 
             ctx.beginPath();
 
-            const tx = head.x + this.grid * 0.5;
-            const ty = head.y + this.grid * 0.8;
+            const tx2 = head.x + this.grid * 0.5;
+            const ty2 = head.y + this.grid * 0.8;
 
-            ctx.moveTo(tx, ty);
-            ctx.lineTo(tx, ty + this.grid * 0.4);
+            ctx.moveTo(tx2, ty2);
+            ctx.lineTo(tx2, ty2 + this.grid * 0.4);
 
-            // fork
-            ctx.moveTo(tx, ty + this.grid * 0.4);
-            ctx.lineTo(tx - 4, ty + this.grid * 0.5);
+            ctx.moveTo(tx2, ty2 + this.grid * 0.4);
+            ctx.lineTo(tx2 - 4, ty2 + this.grid * 0.5);
 
-            ctx.moveTo(tx, ty + this.grid * 0.4);
-            ctx.lineTo(tx + 4, ty + this.grid * 0.5);
+            ctx.moveTo(tx2, ty2 + this.grid * 0.4);
+            ctx.lineTo(tx2 + 4, ty2 + this.grid * 0.5);
 
             ctx.stroke();
         }
